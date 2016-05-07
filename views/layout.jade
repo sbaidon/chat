@@ -1,0 +1,79 @@
+
+doctype
+html
+  head
+    title #{title} - My Site
+    link(href='https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css', rel='stylesheet')
+    link(href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css' rel='stylesheet')
+    link(href='/css/main.css', rel='stylesheet')
+    link(rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons")
+    link(rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-pink.min.css")
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css")
+    script(src='https://code.jquery.com/jquery-2.2.3.js')
+    script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js")
+    script(src="https://code.getmdl.io/1.1.3/material.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js")
+    script(src='https://cdn.socket.io/socket.io-1.4.5.js')
+  body
+    #myModal.modal.fade(role='dialog')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(type='button', data-dismiss='modal')
+            h4.modal-title Add Contact
+          .modal-body
+            .input-group
+              label(for="modal-contact") Contact
+              input#modal-contact.form-control.border.no-shadow
+          .modal-footer
+            button.btn.btn-default#modal-accept(type='button', data-dismiss='modal') Add
+            button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+    #groupModal.modal.fade(role='dialog')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(type='button', data-dismiss='modal')
+            h4.modal-title New Group
+          .modal-body
+            .input-group
+              label(for="modal-group") Group Name
+              input#modal-group.form-control.border.no-shadow
+            .input.group#contact-names
+          .modal-footer
+            button.btn.btn-default#btn-createGroup(type='button', data-dismiss='modal') Create
+            button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+    .mdl-layout.mdl-js-layout.mdl-layout--fixed-header
+      header.mdl-layout__header
+        .mdl-layout__header-row
+          span.mdl-layout-title Chat App
+          button#btn-logout.btn.btn-success.no-rounded(type='button') Logout
+          .mdl-layout-spacer
+          nav.mdl-navigation.mdl-layout--large-screen-only
+            a.mdl-navigation__link(href='') Logged in as:
+            a.mdl-navigation__link#username(href='') #{username}
+            a.mdl-navigation__link(href='') Presence
+            select#select-presence
+              option(value="online") Online
+              option(value="away") Away
+              option(value="offline") Offline
+      main.mdl-layout__content
+        .page-content
+          header
+          .fluid-container
+            block content
+      #footer.hidden
+        .container
+          .row
+            .col-md-12.input-group
+                input#chat-input.form-control.border.no-shadow(placeholder='Type your message here')
+                span.input-group-btn
+                  button#chat-btn.btn.btn-success.no-rounded(type='button', name='message') Send
+                  button.btn.btn-info(type='button', data-toggle='modal', data-target='#myModal') Add Contact
+                  button#fileUpload-btn.btn.btn-info(type='button') Send File
+                  button.btn.btn-info(type='button', data-toggle='modal', data-target='#groupModal') Create Group
+                input#fileUpload.file-loading(type='file')
+    script(src="/js/app.js")
+
+
