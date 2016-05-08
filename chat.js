@@ -1,10 +1,19 @@
 var express = require('express');
 var app = express();
-var server = require('http').createServer(app);
+var fs = require('fs');
+var options = {
+   key  : fs.readFileSync('server.key'),
+   cert : fs.readFileSync('server.crt')
+};
+var server = require('https').createServer(options, app);
+
+
 var io = require('socket.io')(server);
 var bodyParser = require('body-parser');
 var xmpp = require('simple-xmpp');
 var Parse = require('parse/node');
+
+
 
 var PORT = 3000;
 
@@ -34,8 +43,8 @@ app.post('/', function(req, res) {
     try {
     xmpp.connect({
         jid: username,
-        password: 'password',
-        host: '192.241.244.151',
+        password: password,
+        host: 'cml.chi.itesm.mx',
         port: 5222,
         credentials: true
     });
@@ -62,6 +71,7 @@ io.sockets.on('connection', function(socket) {
     });
 
     xmpp.on('chat', function(from, message) {
+    	console.log(message);
         socket.emit('received', {
             'from': from,
             'message': message
@@ -69,6 +79,7 @@ io.sockets.on('connection', function(socket) {
     });
 
     xmpp.on('groupchat', function(conference, from, message, stamp) {
+    	console.log(message);
     	socket.emit('groupmessage', {conference: conference, from: from, message: message});
     });
 

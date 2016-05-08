@@ -1,6 +1,6 @@
 (function($) {
 
-    var socket = io.connect('http://localhost:3000');
+    var socket = io.connect('https://localhost:3000');
     var username = $("#username").text();
     var contactList = [];
     var to;
@@ -35,7 +35,7 @@
         });
 
         $('#btn-logout').on('click', function() {
-            window.location.replace("http://localhost:3000");
+            window.location.replace("httpss://localhost:3000");
             socket.emit('logout');
         });
 
