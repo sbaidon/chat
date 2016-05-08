@@ -40,7 +40,6 @@ app.post('/', function(req, res) {
     var password = req.body.password;
     var host = req.body.host;
 
-    try {
     xmpp.connect({
         jid: username,
         password: password,
@@ -48,10 +47,6 @@ app.post('/', function(req, res) {
         port: 5222,
         credentials: true
     });
-	}
-	catch (err) {
-		res.render('index');
-	}    
 
     res.redirect('/chat/' + username);
 });
@@ -207,4 +202,4 @@ io.sockets.on('connection', function(socket) {
 
 });
 
-server.listen(process.env.PORT || 5000);
+server.listen(process.env.PORT || 3000);

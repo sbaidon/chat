@@ -1,6 +1,6 @@
 (function($) {
 
-    var socket = io.connect('https://localhost:3000');
+    var socket = io.connect();
     var username = $("#username").text();
     var contactList = [];
     var to;
