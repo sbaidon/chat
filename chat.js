@@ -10,7 +10,6 @@ var PORT = 3000;
 
 Parse.initialize("myAppId");
 Parse.serverURL = 'http://192.241.244.151:1337/parse';
-
 var Chat = Parse.Object.extend("Chat");
 
 app.use(bodyParser.json());
@@ -32,12 +31,18 @@ app.post('/', function(req, res) {
     var password = req.body.password;
     var host = req.body.host;
 
+    try {
     xmpp.connect({
-        jid: 'admin@cml.chi.itesm.mx',
-        password: 'ithe2ichi7osel',
-        host: 'cml.chi.itesm.mx',
-        port: 5222
+        jid: username,
+        password: 'password',
+        host: '192.241.244.151',
+        port: 5222,
+        credentials: true
     });
+	}
+	catch (err) {
+		res.render('index');
+	}    
 
     res.redirect('/chat/' + username);
 });
@@ -64,11 +69,12 @@ io.sockets.on('connection', function(socket) {
     });
 
     xmpp.on('groupchat', function(conference, from, message, stamp) {
-    	socket.emit('groupchat', message);
+    	socket.emit('groupmessage', {conference: conference, from: from, message: message});
     });
 
     xmpp.on('error', function(err) {
-        socket.emit('error', err);
+        console.log(err);
+        socket.emit('error', {err:err});
     });
 
     xmpp.on('stanza', function(stanza) {
@@ -80,7 +86,6 @@ io.sockets.on('connection', function(socket) {
                     name: element.attrs.jid,
                     subscription: element.attrs.subscription
                 };
-                console.log(roster);
                 contacts.push(roster);
             });
             socket.emit('roster', contacts);
@@ -96,6 +101,7 @@ io.sockets.on('connection', function(socket) {
     });
 
     xmpp.on('buddy', function(jid, state, statusText, resource) {
+    	console.log("buddy" + jid);
         socket.emit('state', {
             from: jid,
             state: state
@@ -107,7 +113,7 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('sent', function(data) {
-        xmpp.send(data.to, data.message);
+        xmpp.send(data.to, data.message, data.group);
     });
 
     socket.on('response', function(data) {
@@ -174,6 +180,12 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('invite', function(data) {
     	xmpp.invite(data.to, data.room);
+    });
+
+    socket.on('check', function(data) {
+    	xmpp.probe(data.contact.name, function(state) {
+    		socket.emit('status', {contact:data.contact.name, state:state});
+    	});
     });
     
     function getGroupMembers(data) {

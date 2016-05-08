@@ -20,7 +20,13 @@
 
         $('#chat-btn').on('click', function() {
             var message = $('#chat-input').val();
-            sendMessage(to, message, false);
+            if (to.indexOf("conference") > -1) {
+                console.log("group message");
+                sendMessage(to, message, false, true);
+            } else {
+                console.log("normal message");
+                sendMessage(to, message, false, false);
+            }
         });
 
         $('#modal-accept').on('click', function() {
@@ -43,11 +49,15 @@
             var invites = getInvites();
             var group = name + host;
 
-            $(".tab").unbind("click");
-            addToContactList(name);
-            activateContactList();
-    
-            socket.emit('creategroup', {group:group, invites: invites});
+            var contact = {
+                name: group
+            };
+
+            cleanContactList(contact);
+            socket.emit('creategroup', {
+                group: group,
+                invites: invites
+            });
 
         });
 
@@ -62,25 +72,28 @@
     });
 
     socket.on('add-contact', function(contact) {
-        location.reload();
+        cleanContactList(contact)
     });
 
     socket.on('received', function(data) {
         receiveMessage(data.message, data.from);
     });
 
-    socket.on('groupchat', function(message) {
-        receiveMessage(message);
+    socket.on('groupchat', function(data) {
+        receiveGroupMessage(data.conference, data.from, data.message);
     });
 
     socket.on('roster', function(contacts) {
-        
         $(".mdl-spinner").remove();
+        contactList = contacts;
         $('#footer').removeClass("hidden");
         if (listEmpty) {
             contacts.forEach(function(contact) {
                 createCheckboxes(contact);
                 addToContactList(contact.name);
+                socket.emit('check', {
+                    contact: contact
+                });
             });
             activateContactList();
             listEmpty = false;
@@ -88,6 +101,7 @@
     });
 
     socket.on('state', function(data) {
+        console.log(data.from.toString());
         addNotification(data.state, data.from);
     });
 
@@ -103,6 +117,21 @@
     socket.on('stanza', function(stanza) {
         console.log(stanza);
     });
+
+    socket.on('status', function(data) {
+        receiveMessage("Hello my state now is " + data.state, data.contact);
+    });
+
+    socket.on('error', function(data) {
+        window.location.replace("http://localhost:3000");
+    });
+
+    function cleanContactList(contact) {
+        $(".is-active").toggleClass("is-active");
+        $(".tab").unbind("click");
+        addToContactList(contact.name);
+        activateContactList();
+    }
 
     function getInvites() {
         var invites = []
@@ -128,16 +157,16 @@
     function addNotification(state, from) {
         switch (state) {
             case "online":
-            toastr.success('is ' + state , 'Contact ' + from);
-            break;
+                toastr.success('is ' + state, 'Contact ' + from);
+                break;
             case "away":
-            toastr.warning('is ' + state , 'Contact ' + from);
-            break;
+                toastr.warning('is ' + state, 'Contact ' + from);
+                break;
             case "offline":
-            toastr.error('is ' + state , 'Contact ' + from)
-            break;
+                toastr.error('is ' + state, 'Contact ' + from)
+                break;
             default:
-            toastr.success(state, from);
+                toastr.success(state, from);
         }
     }
 
@@ -145,10 +174,26 @@
         socket.emit('new', contact);
     }
 
+    function receiveGroupMessage(group, from, message) {
+        document.title = "New Message from " + from;
+        addNotification(message, group);
+        $(document.getElementById(`${group}-chat`)).append(
+            `<li class="left clearfix"><span class="chat-img pull-left">
+            <img src="http://bootdey.com/img/Content/user_1.jpg" alt="User Avatar"/></span>
+           <div class="chat-body clearfix">
+            <div class="header"><strong class="primary-font">${from}</strong>
+            <small class="pull-right text-muted">
+            <i class="fa fa-clock-o"></i>Just Now</small>
+            </div>
+             <p id="chat-text">${message}</p>
+          </div>
+        </li>`
+        );
+    }
+
     function receiveMessage(message, from) {
         document.title = "New Message from " + from;
         addNotification(message, from);
-
         $(document.getElementById(`${from}-chat`)).append(
             `<li class="left clearfix"><span class="chat-img pull-left">
             <img src="http://bootdey.com/img/Content/user_1.jpg" alt="User Avatar"/></span>
@@ -163,12 +208,13 @@
         );
     }
 
-    function sendMessage(to, message, file) {
+    function sendMessage(to, message, file, group) {
         var text = `${message}`;
 
         socket.emit('sent', {
             to: to,
-            message: message
+            message: message,
+            group: group
         });
 
         if (file) {
@@ -193,11 +239,11 @@
         var div = document.createElement("div");
         var innerDiv = document.createElement("div");
         var ul = document.createElement("ul");
-        var small = document.createElement("small");
 
         a.href = "#" + contact;
         a.innerText = contact;
         a.className = "mdl-tabs__tab tab";
+        a.id = contact + "-tab";
 
 
         div.className = "mdl-tabs__panel";
@@ -207,8 +253,6 @@
 
         ul.className = "chat";
         ul.id = contact + "-chat";
-
-        small.innerText = "";
 
         innerDiv.appendChild(ul);
         div.appendChild(innerDiv);
@@ -220,9 +264,6 @@
         var previousTab = null;
         var previousPanel = null;
         $('.tab').on('click', function() {
-
-
-
             if (previousPanel != null) {
                 $(previousPanel).toggleClass("is-active");
                 $(previousTab).toggleClass("is-active");
