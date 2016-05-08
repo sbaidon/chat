@@ -207,6 +207,6 @@ io.sockets.on('connection', function(socket) {
 
 });
 
-server.listen(PORT, function() {
+server.listen(process.env.PORT || 5000), function() {
     console.log('Starting Web app in port ' + PORT);
 });
