@@ -15,6 +15,7 @@ var Parse = require('parse/node');
 var username;
 
 
+
 var PORT = 3000;
 
 Parse.initialize("myAppId");
@@ -101,7 +102,7 @@ io.sockets.on('connection', function(socket) {
         else if(stanza.name == 'iq' && stanza.attrs.type == 'result' && stanza.attrs.id == 'muc_id') {
           console.log(stanza.children[0].children);
         }
-        else if (stanza.name == "message" && stanza.attrs.from.indexOf("conference") > -1) {
+        else if (stanza.name == "message" && stanza.attrs.from.indexOf("conference") > -1 && stanza.attrs.type != "groupchat") {
         	xmpp.join(stanza.attrs.from + "/" + username);
         	socket.emit("joingroup", {name:stanza.attrs.from});
         }

@@ -88,7 +88,7 @@
         receiveMessage(data.message, data.from);
     });
 
-    socket.on('groupchat', function(data) {
+    socket.on('groupmessage', function(data) {
         receiveGroupMessage(data.conference, data.from, data.message);
     });
 
