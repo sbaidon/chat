@@ -80,7 +80,8 @@
     });
 
     socket.on('add-contact', function(contact) {
-        cleanContactList(contact)
+        cleanContactList(contact);
+        createCheckboxes(contact);
     });
 
     socket.on('received', function(data) {
