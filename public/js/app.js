@@ -296,6 +296,7 @@
     function deleteContact(contact) {
         socket.emit("delete", {contact:contact});
         $(document.getElementById(contact + "-tab")).remove();
+        $(document.getElementById(contact)).remove();
         $(document.getElementById(contact + "-chat")).remove();
         $(".is-active").toggleClass("is-active");
         $(".tab").unbind("click");

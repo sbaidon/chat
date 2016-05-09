@@ -107,7 +107,7 @@ io.on('connection', function(socket) {
                 name: stanza.attrs.from
             });
         } else if (stanza.attrs.type === 'set') {
-        	if(stanza.children[0].children[0].attrs.subscription === "to") {
+        	if(stanza.children[0].children[0].attrs.subscription != "none" && stanza.children[0].children[0].attrs.subscription != "from") {
             socket.emit("add-contact", {
                 name: stanza.children[0].children[0].attrs.jid
             });
@@ -139,6 +139,7 @@ io.on('connection', function(socket) {
         if (data.accept) {
             xmpp.acceptSubscription(data.contact);
         }
+        socket.emit("add-contact" , {name:data.contact});
     });
 
     socket.on('new', function(contact) {
