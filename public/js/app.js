@@ -80,8 +80,11 @@
     });
 
     socket.on('add-contact', function(contact) {
+        var element = document.getElementById(contact.name + "-tab");
+        if (!document.contains(element)) {
         cleanContactList(contact);
         createCheckboxes(contact);
+        }
     });
 
     socket.on('received', function(data) {
