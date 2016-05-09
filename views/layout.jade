@@ -15,7 +15,7 @@ html
     script(src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js")
     script(src='https://cdn.socket.io/socket.io-1.4.5.js')
   body
-    #myModal.modal.fade(role='dialog')
+    #addModal.modal.fade(role='dialog')
       .modal-dialog
         .modal-content
           .modal-header
@@ -26,7 +26,21 @@ html
               label(for="modal-contact") Contact
               input#modal-contact.form-control.border.no-shadow
           .modal-footer
-            button.btn.btn-default#modal-accept(type='button', data-dismiss='modal') Add
+            button.btn.btn-default#modal-add(type='button', data-dismiss='modal') Add
+            button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+    #deleteModal.modal.fade(role='dialog')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(type='button', data-dismiss='modal')
+            h4.modal-title Delete Contact
+          .modal-body
+            .input-group
+              label(for="modal-contact") Contact
+              input#modal-delete-contact.form-control.border.no-shadow
+          .modal-footer
+            button.btn.btn-default#modal-delete(type='button', data-dismiss='modal') Delete
             button.btn.btn-default(type='button', data-dismiss='modal') Close
 
     #groupModal.modal.fade(role='dialog')

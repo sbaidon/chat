@@ -29,9 +29,14 @@
             }
         });
 
-        $('#modal-accept').on('click', function() {
+        $('#modal-add').on('click', function() {
             var contact = $('#modal-contact').val();
             addContact(contact);
+        });
+
+        $('#modal-delete').on('click', function() {
+            var contact= $('#modal-delete-contact').val();
+            deleteContact(contact);
         });
 
         $('#btn-logout').on('click', function() {
@@ -61,6 +66,10 @@
 
         });
 
+    });
+
+    socket.on('joingroup', function (group) {
+        cleanContactList(group);
     });
 
     socket.on('subscription', function(subscriber) {
@@ -277,6 +286,15 @@
             previousPanel = panel;
             previousTab = this;
         });
+    }
+
+    function deleteContact(contact) {
+        socket.emit("delete", {contact:contact});
+        $(document.getElementById(contact + "-tab")).remove();
+        $(document.getElementById(contact + "-chat")).remove();
+        $(".is-active").toggleClass("is-active");
+        $(".tab").unbind("click");
+        activateContactList();
     }
 
 })(jQuery);
