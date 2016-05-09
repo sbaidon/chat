@@ -1,26 +1,20 @@
-var express = require('express');
-var app = express();
 var fs = require('fs');
 var options = {
-   key  : fs.readFileSync('server.key'),
-   cert : fs.readFileSync('server.crt')
+    key: fs.readFileSync('server.key'),
+    cert: fs.readFileSync('server.crt')
 };
+var express = require('express');
+var app = express();
 var server = require('https').createServer(options, app);
-
-
 var io = require('socket.io')(server);
 var bodyParser = require('body-parser');
 var xmpp = require('simple-xmpp');
 var Parse = require('parse/node');
-var username;
-
-
-
-var PORT = 3000;
-
 Parse.initialize("myAppId");
 Parse.serverURL = 'http://192.241.244.151:1337/parse';
 var Chat = Parse.Object.extend("Chat");
+var PORT = 3000;
+var username;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -67,7 +61,7 @@ io.sockets.on('connection', function(socket) {
     });
 
     xmpp.on('chat', function(from, message) {
-    	console.log(message);
+        console.log(message);
         socket.emit('received', {
             'from': from,
             'message': message
@@ -75,37 +69,43 @@ io.sockets.on('connection', function(socket) {
     });
 
     xmpp.on('groupchat', function(conference, from, message, stamp) {
-    	if(from != username) {
-    	socket.emit('groupmessage', {conference: conference, from: from, message: message});
-    	}
+        if (from != username) {
+            socket.emit('groupmessage', {
+                conference: conference,
+                from: from,
+                message: message
+            });
+        }
     });
 
     xmpp.on('error', function(err) {
         console.log(err);
-        socket.emit('error', {err:err});
+        socket.emit('error', {
+            err: err
+        });
     });
 
     xmpp.on('stanza', function(stanza) {
         var contacts = [];
-        socket.emit('stanza',stanza);
+        socket.emit('stanza', stanza);
         if (stanza.attrs.id == 'roster_0') {
             stanza.children[0].children.forEach(function(element, index) {
                 var roster = {
                     name: element.attrs.jid,
                     subscription: element.attrs.subscription
                 };
-             	if(roster.subscription != "none" && roster.subscription != "from") {
-                contacts.push(roster);
-            	}
+                if (roster.subscription != "none" && roster.subscription != "from") {
+                    contacts.push(roster);
+                }
             });
             socket.emit('roster', contacts);
-        }
-        else if(stanza.name == 'iq' && stanza.attrs.type == 'result' && stanza.attrs.id == 'muc_id') {
-          console.log(stanza.children[0].children);
-        }
-        else if (stanza.name == "message" && stanza.attrs.from.indexOf("conference") > -1 && stanza.attrs.type != "groupchat") {
-        	xmpp.join(stanza.attrs.from + "/" + username);
-        	socket.emit("joingroup", {name:stanza.attrs.from});
+        } else if (stanza.name == 'iq' && stanza.attrs.type == 'result' && stanza.attrs.id == 'muc_id') {
+            console.log(stanza.children[0].children);
+        } else if (stanza.name == "message" && stanza.attrs.from.indexOf("conference") > -1 && stanza.attrs.type != "groupchat") {
+            xmpp.join(stanza.attrs.from + "/" + username);
+            socket.emit("joingroup", {
+                name: stanza.attrs.from
+            });
         }
     });
 
@@ -115,7 +115,6 @@ io.sockets.on('connection', function(socket) {
     });
 
     xmpp.on('buddy', function(jid, state, statusText, resource) {
-    	console.log("buddy" + jid);
         socket.emit('state', {
             from: jid,
             state: state
@@ -133,7 +132,9 @@ io.sockets.on('connection', function(socket) {
     socket.on('response', function(data) {
         if (data.accept) {
             xmpp.acceptSubscription(data.contact);
-            socket.emit('add-contact', {name: data.contact});
+            socket.emit('add-contact', {
+                name: data.contact
+            });
         }
     });
 
@@ -142,7 +143,6 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('logout', function() {
-        xmpp.setPresence('offline', 'Im not here');
         xmpp.disconnect();
     });
 
@@ -176,42 +176,52 @@ io.sockets.on('connection', function(socket) {
 
     xmpp.on('chatstate', function(from, state) {
         socket.emit('state', {
-        	from: from,
-        	state: state
+            from: from,
+            state: state
         });
     });
 
     socket.on('presence', function(presence) {
-    	xmpp.setPresence(presence);
+        xmpp.setPresence(presence);
     });
 
     socket.on('creategroup', function(data) {
-    	xmpp.join(data.group+ '/' + username);
-    	data.invites.forEach(function (jid){
-    	    xmpp.invite(jid, data.group, "JOIN NOW");
-    	  });
+        xmpp.join(data.group + '/' + username);
+        data.invites.forEach(function(jid) {
+            xmpp.invite(jid, data.group, "JOIN NOW");
+        });
     });
 
     socket.on('invite', function(data) {
-    	xmpp.invite(data.to, data.room);
+        xmpp.invite(data.to, data.room);
     });
 
     socket.on('check', function(data) {
-    	xmpp.probe(data.contact.name, function(state) {
-    		socket.emit('status', {contact:data.contact.name, state:state});
-    	});
+        xmpp.probe(data.contact.name, function(state) {
+            socket.emit('status', {
+                contact: data.contact.name,
+                state: state
+            });
+        });
     });
 
     socket.on('delete', function(data) {
-    	xmpp.unsubscribe(data.contact);
+        xmpp.unsubscribe(data.contact);
     })
-    
+
     function getGroupMembers(data) {
-    	var stanza = new xmpp.Element('iq', {from: data.from, to: data.to, type: 'get', id: 'muc_id'}).c('query', { xmlns: 'http://jabber.org/protocol/disco#items'});
-    	xmpp.conn.send(stanza);
+        var stanza = new xmpp.Element('iq', {
+            from: data.from,
+            to: data.to,
+            type: 'get',
+            id: 'muc_id'
+        }).c('query', {
+            xmlns: 'http://jabber.org/protocol/disco#items'
+        });
+        xmpp.conn.send(stanza);
     }
 
 
 });
 
-server.listen(process.env.PORT || 3000);
+server.listen(process.env.PORT || PORT);

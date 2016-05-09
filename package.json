@@ -4,7 +4,6 @@
   "description": "xmpp client",
   "main": "chat.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node chat.js"
   },
   "keywords": [
@@ -13,7 +12,7 @@
     "client"
   ],
   "author": "sbaidon",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "body-parser": "^1.15.0",
     "express": "^4.13.4",

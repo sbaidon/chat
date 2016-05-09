@@ -77,16 +77,20 @@ html
           header
           .fluid-container
             block content
-      #footer.hidden
-        .container
-          .row
-            .col-md-12.input-group
-                input#chat-input.form-control.border.no-shadow(placeholder='Type your message here')
-                span.input-group-btn
+      footer#footer.mdl-mini-footer.hidden
+            .mdl-mini-footer__left-section
+              .mdl-logo Actions
+              ul.mdl-mini-footer__link-list
+                li
+                  input#chat-input.form-control.border.no-shadow(placeholder='Type your message here')
+                li
                   button#chat-btn.btn.btn-success.no-rounded(type='button', name='message') Send
+                li
                   button.btn.btn-info(type='button', data-toggle='modal', data-target='#groupModal') Add Group
+                li
                   button#fileUpload-btn.btn.btn-info(type='button') Send File
-                input#fileUpload.file-loading(type='file')
+                li
+                  input#fileUpload.file-loading(type='file')
     script(src="/js/app.js")
 
 

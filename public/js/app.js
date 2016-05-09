@@ -2,7 +2,6 @@
 
     var socket = io.connect();
     var username = $("#username").text();
-    var contactList = [];
     var to;
     var listEmpty = true;
 
@@ -40,7 +39,7 @@
         });
 
         $('#btn-logout').on('click', function() {
-            window.location.replace("httpss://localhost:3000");
+            window.location.replace("https://localhost:3000");
             socket.emit('logout');
         });
 
@@ -94,29 +93,32 @@
 
     socket.on('roster', function(contacts) {
         $(".mdl-spinner").remove();
-        contactList = contacts;
         $('#footer').removeClass("hidden");
         if (listEmpty) {
             contacts.forEach(function(contact) {
                 createCheckboxes(contact);
-                addToContactList(contact.name);
+                cleanContactList(contact)
                 socket.emit('check', {
                     contact: contact
                 });
             });
-            activateContactList();
             listEmpty = false;
         }
     });
 
     socket.on('state', function(data) {
-        console.log(data.from.toString());
         addNotification(data.state, data.from);
     });
 
     socket.on('saved', function(data) {
         document.getElementById("fileUpload").value = "";
-        sendMessage(to, data.url, true);
+        if (to.indexOf("conference") > -1) {
+        sendMessage(to, data.url, true, true);
+        }
+        else {
+            sendMessage(to, data.url, true, false);
+        }
+
     });
 
     socket.on('error', function(err) {
@@ -278,7 +280,6 @@
                 $(previousTab).toggleClass("is-active");
 
             }
-
             to = this.textContent;
             var panel = document.getElementById(to);
             $(this).toggleClass("is-active");
