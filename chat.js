@@ -1,11 +1,11 @@
-var fs = require('fs');
-var options = {
-    key: fs.readFileSync('server.key'),
-    cert: fs.readFileSync('server.crt')
-};
+//var fs = require('fs');
+//var options = {
+//    key: fs.readFileSync('server.key'),
+//    cert: fs.readFileSync('server.crt')
+//};
 var express = require('express');
 var app = express();
-var server = require('https').createServer(options, app);
+var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var bodyParser = require('body-parser');
 var xmpp = require('simple-xmpp');
