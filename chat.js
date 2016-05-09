@@ -1,8 +1,10 @@
 var fs = require('fs');
+
 var options = {
     key: fs.readFileSync('server.key'),
     cert: fs.readFileSync('server.crt')
 };
+
 var express = require('express');
 var app = express();
 var server = require('https').createServer(options, app);
@@ -206,18 +208,6 @@ io.on('connection', function(socket) {
     socket.on('delete', function(data) {
         xmpp.unsubscribe(data.contact);
     })
-
-    function getGroupMembers(data) {
-        var stanza = new xmpp.Element('iq', {
-            from: data.from,
-            to: data.to,
-            type: 'get',
-            id: 'muc_id'
-        }).c('query', {
-            xmlns: 'http://jabber.org/protocol/disco#items'
-        });
-        xmpp.conn.send(stanza);
-    }
 
 
 });
