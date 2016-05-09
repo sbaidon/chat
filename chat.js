@@ -75,8 +75,9 @@ io.sockets.on('connection', function(socket) {
     });
 
     xmpp.on('groupchat', function(conference, from, message, stamp) {
-    	console.log(message);
+    	if(from != username) {
     	socket.emit('groupmessage', {conference: conference, from: from, message: message});
+    	}
     });
 
     xmpp.on('error', function(err) {
