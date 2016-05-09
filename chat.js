@@ -106,10 +106,10 @@ io.on('connection', function(socket) {
             socket.emit("joingroup", {
                 name: stanza.attrs.from
             });
-           else if (stanza.attrs.type == 'set') {
+        }
+           else if (stanza.attrs.type === 'set') {
            	 socket.emit("add-contact", {name:stanza.children[0].children[0].attrs.jid});
            }
-        }
     });
 
 
