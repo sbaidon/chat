@@ -106,10 +106,13 @@ io.on('connection', function(socket) {
             socket.emit("joingroup", {
                 name: stanza.attrs.from
             });
+        } else if (stanza.attrs.type === 'set') {
+        	if(stanza.children[0].children[0].attrs.subscription === "to") {
+            socket.emit("add-contact", {
+                name: stanza.children[0].children[0].attrs.jid
+            });
+        	}
         }
-           else if (stanza.attrs.type === 'set') {
-           	 socket.emit("add-contact", {name:stanza.children[0].children[0].attrs.jid});
-           }
     });
 
 
