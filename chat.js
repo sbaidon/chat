@@ -25,9 +25,7 @@ app.set('view engine', 'jade');
 app.use(express.static('public'));
 
 app.get('/', function(req, res) {
-    res.render('index', {
-        title: 'Home'
-    });
+    res.render('index');
 });
 
 app.post('/', function(req, res) {
