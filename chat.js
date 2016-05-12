@@ -15,6 +15,7 @@ var Parse = require('parse/node');
 Parse.initialize("myAppId");
 Parse.serverURL = 'http://192.241.244.151:1337/parse';
 var Chat = Parse.Object.extend("Chat");
+var Important = Parse.Object.extend("Important");
 var PORT = 3000;
 var username;
 
@@ -27,6 +28,10 @@ app.set('view engine', 'jade');
 app.use(express.static('public'));
 
 app.get('/', function(req, res) {
+    if(xmpp.conn) {
+    xmpp.disconnect();
+    }
+
     res.render('index');
 });
 
@@ -42,7 +47,6 @@ app.post('/', function(req, res) {
         port: 5222,
         credentials: true
     });
-
     res.redirect('/chat/' + username);
 });
 
@@ -80,9 +84,7 @@ io.on('connection', function(socket) {
 
     xmpp.on('error', function(err) {
         console.log(err);
-        socket.emit('error', {
-            err: err
-        });
+        xmpp.disconnect();
     });
 
     xmpp.on('stanza', function(stanza) {
@@ -128,7 +130,7 @@ io.on('connection', function(socket) {
     });
 
     xmpp.on('close', function() {
-        console.log('connection has been closed!');
+        socket.emit('bad', {err:"logout"});
     });
 
     socket.on('sent', function(data) {
@@ -147,6 +149,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('logout', function() {
+        console.log("log out");
         xmpp.disconnect();
     });
 
@@ -178,6 +181,68 @@ io.on('connection', function(socket) {
 
     });
 
+    socket.on('important', function(data) {
+        var important = new Important();
+        important.set("to", data.to);
+        important.set("from", data.from);
+        important.set("message", data.message);
+        important.save(null, {
+            sucess: function(important) {
+                console.log("saved");
+            },
+            error: function(important, error) {
+                console.log("error");
+            }
+        });
+    });
+
+    socket.on("retrieve", function(data) {
+        var messages = [];
+        var query = new Parse.Query(Important);
+        query.equalTo("to", data.to);
+        query.equalTo("from", data.from);
+        query.find({
+          success: function(results) {
+            for (var i = 0; i < results.length; i++) {
+              var object = results[i];
+              var from = object.get('from');
+              var message = object.get("message");
+              var date = object.get("createdAt");
+              messages.push({
+                from:from,
+                message:message,
+                date: date
+              });
+            }
+            query = new Parse.Query(Important);
+            query.equalTo("to", data.from);
+            query.equalTo("from", data.to);
+            query.find({
+                success: function(results) {
+                   for (var i = 0; i < results.length; i++) {
+                     var object = results[i];
+                     var from = object.get('from');
+                     var message = object.get("message");
+                     var date = object.get("createdAt");
+                     messages.push({
+                       from:from,
+                       message:message,
+                       date: date
+                     });
+                   }
+                   socket.emit("retrieveDone", {messages:messages});
+                 },
+                 error: function(error) {
+                   alert("Error: " + error.code + " " + error.message);
+                 }
+            });
+          },
+          error: function(error) {
+            alert("Error: " + error.code + " " + error.message);
+          }
+        });
+    });
+
     xmpp.on('chatstate', function(from, state) {
         socket.emit('state', {
             from: from,
@@ -206,6 +271,34 @@ io.on('connection', function(socket) {
                 contact: data.contact.name,
                 state: state
             });
+        });
+    });
+
+    socket.on('retrieveFiles', function(data) {
+        var files= [];
+        var query = new Parse.Query(Chat);
+        query.equalTo("to", data.to);
+        query.equalTo("from", data.from);
+        query.find({
+          success: function(results) {
+            for (var i = 0; i < results.length; i++) {
+              var object = results[i];
+              var from = object.get('from');
+              var url = object.get("file").url();
+              var name = object.get("file").name().split(" ");
+              var date = object.get("createdAt");
+              files.push({
+                from:from,
+                name:name[1],
+                date: date,
+                url: url
+              });
+            }
+            socket.emit("retrieveFilesDone", {files:files});
+          },
+          error: function(error) {
+            alert("Error: " + error.code + " " + error.message);
+          }
         });
     });
 

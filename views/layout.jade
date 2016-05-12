@@ -58,13 +58,35 @@ html
             button.btn.btn-default#btn-createGroup(type='button', data-dismiss='modal') Create
             button.btn.btn-default(type='button', data-dismiss='modal') Close
 
+    #filterModal.modal.fade(role='dialog')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(type='button', data-dismiss='modal')
+            h4.modal-title Filtered Messages
+          .modal-body#filtered-messages
+          .modal-footer
+            button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+    #filterModalFiles.modal.fade(role='dialog')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(type='button', data-dismiss='modal')
+            h4.modal-title Files
+          .modal-body#filtered-files
+          .modal-footer
+            button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+
+
     .mdl-layout.mdl-js-layout.mdl-layout--fixed-header
       header.mdl-layout__header
         .mdl-layout__header-row
           span.mdl-layout-title Chat App
-          button#btn-logout.btn.btn-success.no-rounded(type='button') Logout
           .mdl-layout-spacer
           nav.mdl-navigation.mdl-layout--large-screen-only
+            button#btn-logout.btn.btn-success.no-rounded Logout
             a.mdl-navigation__link(href='') Logged in as:
             a.mdl-navigation__link#username(href='') #{username}
             a.mdl-navigation__link(href='') Presence
@@ -91,6 +113,16 @@ html
                   button#fileUpload-btn.btn.btn-info(type='button') Send File
                 li
                   input#fileUpload.file-loading(type='file')
+                li
+                  label.mdl-checkbox.mdl-js-checkbox.mdl-js-ripple-effect(for='important-messages')
+                    input#important-messages.mdl-checkbox__input(name="chk[]", type='checkbox', checked='')
+                    span.mdl-checkbox__label Important Message
+                li
+                  button#important-btn.btn.btn-info(type='button') Important Messages
+                li
+                  button#files-btn.btn.btn-info(type='button') Files
+
+
     script(src="/js/app.js")
 
 
