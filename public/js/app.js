@@ -120,6 +120,7 @@
 
     socket.on('roster', function(contacts) {
         $(".mdl-spinner").remove();
+        console.log(contacts);
         $('#footer').removeClass("hidden");
         if (listEmpty) {
             contacts.forEach(function(contact) {
@@ -372,6 +373,7 @@
     }
 
     function addToContactList(contact) {
+        console.log("contact list", contact);
         var a = document.createElement("a");
         var div = document.createElement("div");
         var innerDiv = document.createElement("div");
@@ -381,7 +383,6 @@
         a.innerText = contact;
         a.className = "mdl-tabs__tab tab";
         a.id = contact + "-tab";
-
 
         div.className = "mdl-tabs__panel";
         div.id = contact;

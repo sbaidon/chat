@@ -5,6 +5,8 @@ var options = {
     cert: fs.readFileSync('server.crt')
 };
 
+var QB = require('quickblox');
+
 var express = require('express');
 var app = express();
 var server = require('https').createServer(options, app);
@@ -19,6 +21,15 @@ var Important = Parse.Object.extend("Important");
 var PORT = 3000;
 var username;
 
+
+var CREDENTIALS = {
+  appId: 40425,
+  authKey: 'xnDkEMM7Lkc7dQe',
+  authSecret: 'fNEan7pyzXwXN5V'
+};
+ 
+QB.init(CREDENTIALS.appId, CREDENTIALS.authKey, CREDENTIALS.authSecret);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
@@ -28,10 +39,6 @@ app.set('view engine', 'jade');
 app.use(express.static('public'));
 
 app.get('/', function(req, res) {
-    if(xmpp.conn) {
-    xmpp.disconnect();
-    }
-
     res.render('index');
 });
 
@@ -43,7 +50,7 @@ app.post('/', function(req, res) {
     xmpp.connect({
         jid: username,
         password: password,
-        host: 'cml.chi.itesm.mx',
+        host: host,
         port: 5222,
         credentials: true
     });
@@ -109,12 +116,17 @@ io.on('connection', function(socket) {
                 name: stanza.attrs.from
             });
         } else if (stanza.attrs.type === 'set') {
-        	if(stanza.children[0].children[0].attrs.subscription != "none" && stanza.children[0].children[0].attrs.subscription != "from") {
-            socket.emit("add-contact", {
-                name: stanza.children[0].children[0].attrs.jid
-            });
-        	}
+            if (stanza.children[0].children[0].attrs.subscription != "none" && stanza.children[0].children[0].attrs.subscription != "from") {
+                socket.emit("add-contact", {
+                    name: stanza.children[0].children[0].attrs.jid
+                });
+            }
         }
+            else if (stanza.attrs.type == 'headline') {
+                socket.emit("add-contact", {
+                    name: stanza.children[0].children[3].children[0]
+                });
+            }
     });
 
 
@@ -130,10 +142,13 @@ io.on('connection', function(socket) {
     });
 
     xmpp.on('close', function() {
-        socket.emit('bad', {err:"logout"});
+        socket.emit('bad', {
+            err: "logout"
+        });
     });
 
     socket.on('sent', function(data) {
+        console.log(data);
         xmpp.send(data.to, data.message, data.group);
     });
 
@@ -141,7 +156,9 @@ io.on('connection', function(socket) {
         if (data.accept) {
             xmpp.acceptSubscription(data.contact);
         }
-        socket.emit("add-contact" , {name:data.contact});
+        socket.emit("add-contact", {
+            name: data.contact
+        });
     });
 
     socket.on('new', function(contact) {
@@ -202,44 +219,25 @@ io.on('connection', function(socket) {
         query.equalTo("to", data.to);
         query.equalTo("from", data.from);
         query.find({
-          success: function(results) {
-            for (var i = 0; i < results.length; i++) {
-              var object = results[i];
-              var from = object.get('from');
-              var message = object.get("message");
-              var date = object.get("createdAt");
-              messages.push({
-                from:from,
-                message:message,
-                date: date
-              });
+            success: function(results) {
+                for (var i = 0; i < results.length; i++) {
+                    var object = results[i];
+                    var from = object.get('from');
+                    var message = object.get("message");
+                    var date = object.get("createdAt");
+                    messages.push({
+                        from: from,
+                        message: message,
+                        date: date
+                    });
+                }
+                socket.emit("retrieveDone",   {
+                    messages: messages
+                });
+            },
+            error: function(error) {
+                alert("Error: " + error.code + " " + error.message);
             }
-            query = new Parse.Query(Important);
-            query.equalTo("to", data.from);
-            query.equalTo("from", data.to);
-            query.find({
-                success: function(results) {
-                   for (var i = 0; i < results.length; i++) {
-                     var object = results[i];
-                     var from = object.get('from');
-                     var message = object.get("message");
-                     var date = object.get("createdAt");
-                     messages.push({
-                       from:from,
-                       message:message,
-                       date: date
-                     });
-                   }
-                   socket.emit("retrieveDone", {messages:messages});
-                 },
-                 error: function(error) {
-                   alert("Error: " + error.code + " " + error.message);
-                 }
-            });
-          },
-          error: function(error) {
-            alert("Error: " + error.code + " " + error.message);
-          }
         });
     });
 
@@ -275,30 +273,32 @@ io.on('connection', function(socket) {
     });
 
     socket.on('retrieveFiles', function(data) {
-        var files= [];
+        var files = [];
         var query = new Parse.Query(Chat);
         query.equalTo("to", data.to);
         query.equalTo("from", data.from);
         query.find({
-          success: function(results) {
-            for (var i = 0; i < results.length; i++) {
-              var object = results[i];
-              var from = object.get('from');
-              var url = object.get("file").url();
-              var name = object.get("file").name().split(" ");
-              var date = object.get("createdAt");
-              files.push({
-                from:from,
-                name:name[1],
-                date: date,
-                url: url
-              });
+            success: function(results) {
+                for (var i = 0; i < results.length; i++) {
+                    var object = results[i];
+                    var from = object.get('from');
+                    var url = object.get("file").url();
+                    var name = object.get("file").name().split(" ");
+                    var date = object.get("createdAt");
+                    files.push({
+                        from: from,
+                        name: name[1],
+                        date: date,
+                        url: url
+                    });
+                }
+                socket.emit("retrieveFilesDone",   {
+                    files: files
+                });
+            },
+            error: function(error) {
+                alert("Error: " + error.code + " " + error.message);
             }
-            socket.emit("retrieveFilesDone", {files:files});
-          },
-          error: function(error) {
-            alert("Error: " + error.code + " " + error.message);
-          }
         });
     });
 

@@ -1,0 +1,15 @@
+.DS_Store
+
+# npm packages
+node_modules
+npm-debug.log
+
+# *Storm
+.idea/*
+.idea/workspace.xml
+
+# Use command grunt for create quickblox.js
+quickblox.js
+
+#jasmine-npm generate
+.grunt
